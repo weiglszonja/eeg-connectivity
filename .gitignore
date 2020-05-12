@@ -1,3 +1,13 @@
+# EEGLAB files
+data/
+
+# Epochs files
+epochs/
+epochs_*/
+
+# .idea files
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
