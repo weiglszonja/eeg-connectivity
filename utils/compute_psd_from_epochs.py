@@ -2,9 +2,9 @@ import os
 from typing import Tuple
 
 import numpy as np
-import pandas as pd
 from mne import read_epochs, Epochs
 from mne.time_frequency import psd_welch, psd_multitaper
+from utils.settings import periods
 
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
@@ -24,9 +24,7 @@ F_MAX = 45.0
 
 def compute_psd_from_epochs(epochs: Epochs) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Computes power specral density (PSD) from Epochs instance using MNE
-    and saves the computed spectral densities for each channel
-    and for each frequency bin in a CSV file.
+    Computes power spectral density (PSD) from Epochs instance using MNE.
     Returns the power spectral densities (psds) in a shape of
     (n_epochs, n_channels, n_freqs) and the frequencies (freqs) in a shape of
     (n_freqs,).
@@ -40,20 +38,6 @@ def compute_psd_from_epochs(epochs: Epochs) -> Tuple[np.ndarray, np.ndarray]:
     mne.time_frequency.psd_welch : Computation of PSD using Welch's method.
     mne.time_frequency.psd_multitaper : Computation of PSD using multitapers.
     """
-    def _save_psd_to_csv():
-        psds_mean_over_epochs = psds.mean(axis=0)
-        # re-arrange axis for df format
-        psds_mean_over_epochs = np.transpose(psds_mean_over_epochs, (1, 0))
-
-        psd_df = pd.DataFrame(data=psds_mean_over_epochs,
-                              columns=epochs.ch_names,
-                              index=freqs)
-
-        epochs_file_name = epochs.info["file_name"]
-        psd_df.to_csv(os.path.join(target_path, condition, 'psd',
-                                   f'{epochs_file_name}_{METHOD}_psd.csv'),
-                      index=True)
-
     epoch_length = epochs.get_data().shape[-1]
 
     if METHOD == 'welch':
@@ -71,8 +55,6 @@ def compute_psd_from_epochs(epochs: Epochs) -> Tuple[np.ndarray, np.ndarray]:
         logging.error('Not a valid method for computing PSD, '
                       'valid methods are: welch, multitaper.')
         raise
-
-    _save_psd_to_csv()
 
     return psds, freqs
 
@@ -137,13 +119,33 @@ def main():
         logging.info(f'Collected {len(fif_files)} .fif files '
                      f'from "{os.path.abspath(source_path)}"')
 
+        subjects = sorted(
+            list(set([file.split('_')[0] for file in fif_files])))
+        subjects_psd = np.empty((len(subjects),
+                                 len(periods[condition])),
+                                dtype=object)
+
         for fif_file in sorted(fif_files):
+            subject = fif_file.split('_')[0]
             file_name_no_extension = str(fif_file.split('-')[0])
+            matched_period = [period for period in periods[condition] if
+                              period in file_name_no_extension][0]
             epochs = read_epochs(os.path.join(source_path, fif_file))
             epochs.info['file_name'] = file_name_no_extension
 
             psd, freq = compute_psd_from_epochs(epochs=epochs)
+            psd_mean_epochs = psd.mean(axis=0)
+            # re-arrange axis to (n_frequencies, n_electrodes)
+            psd_mean_epochs = np.transpose(psd_mean_epochs, (1, 0))
+
+            subjects_psd[subjects.index(subject),
+                         periods[condition].index(
+                             matched_period)] = psd_mean_epochs
+
             plot_psd(psd=psd, freqs=freq, file_name=file_name_no_extension)
+
+        np.save(os.path.join(target_path, condition, 'psd',
+                             f'subjects_{METHOD}_psd.npy'), subjects_psd)
 
 
 if __name__ == '__main__':
