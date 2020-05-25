@@ -6,3 +6,4 @@ tqdm==4.46.0
 matplotlib==3.2.1
 joblib==0.13.2
 seaborn==0.10.1
+jupyter==1.0.0
