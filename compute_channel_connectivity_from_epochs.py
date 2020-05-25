@@ -102,7 +102,13 @@ def process_fif_files(fif_files: list):
         subject = file_name.split('_')[0]
         file_name_no_extension = str(file_name.split('-')[0])
         matched_period = [period for period in run_config['periods'] if
-                          period in file_name_no_extension][0]
+                          period in file_name_no_extension]
+
+        # possibility to skip those periods that are not in the config file
+        if len(matched_period):
+            matched_period = matched_period[0]
+        else:
+            continue
 
         epochs = read_epochs(file_path)
         epochs = epochs.reorder_channels(ch_names=channels_in_order)
