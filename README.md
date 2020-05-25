@@ -80,3 +80,35 @@ Execute the script by running the following command:
 ```bash
 $ python utils/compute_psd_from_epochs.py
 ```
+
+## Compute spectral connectivity between channels
+Run connectivity analysis with `-h` argument to display help message   
+for list of keyword arguments and possible values:
+```bash
+$ python compute_channel_connectivity_from_epochs.py -h
+
+usage: compute_channel_connectivity_from_epochs.py [-h]
+                                                   [--condition CONDITION]
+                                                   [--method METHOD]
+                                                   [--workers WORKERS]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --condition CONDITION, -condition CONDITION
+                        The name of the condition (default="asrt")
+  --method METHOD, -method METHOD
+                        The name of the connectivity estimation method
+                        (default=wPLI)
+  --workers WORKERS, -w WORKERS
+                        The number of epochs to process in parallel
+                        (default=8)
+```
+Where `method` is the name of connectivity measure to compute, 
+for supported values visit [MNE documentation](https://mne.tools/dev/generated/mne.connectivity.spectral_connectivity.html).
+Some of the supported connectivity measures are: pli, wpli, plv, coh ...  
+Specifying `condition` helps to separate the data (e.g. resting data, task data).
+Results are created at `./result/` where the sub-folders are structured as the following:  
+`./result/{condition}/{method}`. For each connectivity estimation method 
+folders are created under `./result/{condition}/` with the name of the condition.
+E.g. `./result/asrt/wpli` the results of wPLI connectivity that were computed 
+from asrt epochs, and similarly at `./result/asrt/plv` are the results of PLV connectivity. 
