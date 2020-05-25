@@ -112,3 +112,38 @@ Results are created at `./result/` where the sub-folders are structured as the f
 folders are created under `./result/{condition}/` with the name of the condition.
 E.g. `./result/asrt/wpli` the results of wPLI connectivity that were computed 
 from asrt epochs, and similarly at `./result/asrt/plv` are the results of PLV connectivity. 
+
+## Average channel connectivity into Regions of Interest (ROI)
+Compute ROI averaging on channel connectivity data with `-h` argument to 
+display help message for list of keyword arguments and possible values:
+```bash
+$ python compute_roi_from_channel_connecitivity.py -h
+
+usage: compute_roi_from_channel_connecitivity.py [-h] [--condition CONDITION]
+                                                 [--method METHOD]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --condition CONDITION, -condition CONDITION
+                        The name of the condition (default="asrt")
+  --method METHOD, -method METHOD
+                        The name of the connectivity estimation method
+                        (default=wPLI)
+```
+Specifying `condition` and `method` helps to locate the connectivity file (`.npy`).
+Averages channels into ROIs based on `./utils/settings.py` where
+the ROI definitions are defined with the `ROI` variable. 
+Example of channel definitions for 64 channels defined in `./utils/settings.py`:
+```bash
+ROI = {'frontal_left': ['F7', 'F5', 'F3', 'FC5', 'FC3'],
+       'frontal_central': ['F1', 'Fz', 'F2', 'FC1', 'FCz', 'FC2'],
+       'frontal_right': ['F4', 'F6', 'F8', 'FC4', 'FC6'],
+       'temporal_left': ['FT7', 'T7', 'TP7'],
+       'central': ['C3', 'Cz', 'C4'],
+       'temporal_right': ['FT8', 'T8', 'TP8'],
+       'parietal_left': ['CP5', 'CP3', 'P7', 'P5', 'P3'],
+       'parietal_central': ['CP1', 'CPz', 'CP2', 'P1', 'Pz', 'P2'],
+       'parietal_right': ['CP4', 'CP6', 'P4', 'P6', 'P8'],
+       'occipital_left': ['PO3', 'PO7', 'O1'],
+       'occipital_right': ['PO4', 'PO8', 'O2']}
+ ```
