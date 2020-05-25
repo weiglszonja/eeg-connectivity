@@ -72,9 +72,9 @@ interest is defined by `F_MAX` that defaults to `45.0` and is defined in Hz.
 
 Running this script will create figures for each file in sub-directories 
 under target location. The default path will save figures at 
-`".result/{condition}/psd/plots"`. It will also create CSV files containing 
-the calculated spectral densities averaged over the epochs for each channel.
-The default location to save the files is at `".result/{condition}/psd/"`.
+`".result/{condition}/psd/plots"`. It will also create a multidimensional array
+containing the calculated spectral densities averaged over the epochs for each 
+subject. The default location to save the file (`.npy`) is at `".result/{condition}/psd/"`.
 
 Execute the script by running the following command:
 ```bash
