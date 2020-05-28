@@ -172,7 +172,7 @@ def compute_channel_connectivity(epochs: Epochs,
     low_cutoff = tuple(band[0] for band in frequencies)
     high_cutoff = tuple(band[1] - spacing for band in frequencies)
 
-    if method in ['coh', 'ciplv', 'ppc'] or spectrum_mode == 'multitaper':
+    if method in ['coh', 'ciplv', 'ppc']:
         epochs = surface_laplacian(epochs=epochs)
 
     con, _, _, _, _ = spectral_connectivity(data=epochs,
