@@ -132,7 +132,7 @@ def compute_roi_from_channel_connectivity(conn: np.ndarray):
                 fig_path = os.path.join(file_path, 'plots', fig_name)
                 plot_conn_heatmap(data=roi_conn, fig_path=fig_path)
 
-                subjects_roi_conn[subject, period] = roi_conn
+                subjects_roi_conn[subject, period, frequency_band] = roi_conn
 
         logging.info(f'[ROI averaging done]')
 
