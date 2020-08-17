@@ -41,18 +41,20 @@ def initialize(args: argparse.Namespace):
             bands.extend(list(frequency_bands[mode].keys()))
         return bands
 
+    run_config['verbose'] = args.verbose
+    if run_config['verbose']:
+        subjects = _get_subjects_from_epochs_data(
+            path=f'/epochs_{args.condition}')
+        run_config['subjects'] = subjects
+
+        freq_bands = _get_frequency_bands_from_settings()
+        run_config['frequency_bands'] = freq_bands
+
     source = os.path.join(source_path, args.condition, args.method)
     logging.info(f'Initializing ROI averaging at {source} ...')
     run_config['source'] = source
     run_config['method'] = args.method
     run_config['condition'] = args.condition
-
-    subjects = _get_subjects_from_epochs_data(
-        path=f'/epochs_{args.condition}')
-    run_config['subjects'] = subjects
-
-    freq_bands = _get_frequency_bands_from_settings()
-    run_config['frequency_bands'] = freq_bands
 
 
 def load_connectivity_matrix_from_path(path: str) -> np.ndarray:
@@ -98,43 +100,50 @@ def compute_roi_from_channel_connectivity(conn: np.ndarray):
     """
     # pre-define multidimensional array to store all data with dimensions of
     # (n_subjects, n_periods, n_frequencies, n_roi, n_roi)
-    subjects_roi_conn = np.zeros((conn.shape[0],
-                                  conn.shape[1],
-                                  conn.shape[2],
-                                  len(list(ROI.keys())),
-                                  len(list(ROI.keys())),
+    n_roi = len(list(ROI.keys()))
+    n_subjects = conn.shape[0]
+    n_periods = conn.shape[1]
+    n_frequencies = conn.shape[2]
+    subjects_roi_conn = np.zeros((n_subjects,
+                                  n_periods,
+                                  n_frequencies,
+                                  n_roi,
+                                  n_roi,
                                   ))
 
-    channels_in_order = []
-    for channels in list(ROI.values()):
-        channels_in_order.extend(channels)
+    logging.info(
+        f'Averaging {conn.shape[3]}x{conn.shape[4]} {run_config["method"]} '
+        f'channel connectivity into {n_roi}x{n_roi} ROIs for {n_subjects} '
+        f'subjects ...')
 
-    for subject in range(conn.shape[0]):
-        subject_id = run_config['subjects'][subject]
-        logging.info(
-            f'Averaging connectivity into ROIs for subject {subject_id} ...')
+    for subject in range(n_subjects):
+        if 'subjects' in run_config:
+            subject_id = run_config['subjects'][subject]
 
-        for period in range(conn.shape[1]):
+        for period in range(n_periods):
             period_id = periods[run_config['condition']][period]
-            for frequency_band in range(conn.shape[2]):
+
+            for frequency_band in range(n_frequencies):
                 conn_array = conn[subject, period, frequency_band, ...]
                 roi_conn = calculate_roi_averages_from_array(data=conn_array)
 
-                frequency_band_name = run_config['frequency_bands'][
-                    frequency_band]
-                file_name = f'{subject_id}_{period_id}_roi_conn.csv'
-                file_path = os.path.join(run_config['source'],
-                                         frequency_band_name,
-                                         'ROI')
-                roi_conn.to_csv(os.path.join(file_path, file_name), index=True)
-
-                fig_name = f'{subject_id}_{period_id}_roi_conn.png'
-                fig_path = os.path.join(file_path, 'plots', fig_name)
-                plot_conn_heatmap(data=roi_conn, fig_path=fig_path)
-
                 subjects_roi_conn[subject, period, frequency_band] = roi_conn
 
-        logging.info(f'[ROI averaging done]')
+                if run_config['verbose']:
+                    frequency_band_name = run_config['frequency_bands'][
+                        frequency_band]
+                    file_name = f'{subject_id}_{period_id}_roi_conn.csv'
+                    file_path = os.path.join(run_config['source'],
+                                             frequency_band_name,
+                                             'ROI')
+                    roi_conn.to_csv(os.path.join(file_path, file_name),
+                                    index=True)
+
+                    fig_name = f'{subject_id}_{period_id}_roi_conn.png'
+                    fig_path = os.path.join(file_path, 'plots', fig_name)
+                    plot_conn_heatmap(data=roi_conn, fig_path=fig_path)
+
+        logging.info(f'[{subject}/{n_subjects} ROI averaging done]')
 
     logging.info(f'Writing subjects_{run_config["method"]}_roi_conn.npy '
                  f'file at {run_config["source"]}')
@@ -204,6 +213,11 @@ def main():
                              '(default=wPLI)',
                         type=str,
                         default='wpli')
+    parser.add_argument('--verbose', '-verbose',
+                        help='Turn on interim processing: write to files (CSV)'
+                             'and save heatmap figures (PNG) (default=False)',
+                        type=bool,
+                        default=False)
 
     args = parser.parse_args()
 
