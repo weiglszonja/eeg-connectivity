@@ -121,6 +121,7 @@ $ python compute_roi_from_channel_connecitivity.py -h
 
 usage: compute_roi_from_channel_connecitivity.py [-h] [--condition CONDITION]
                                                  [--method METHOD]
+                                                 [--verbose VERBOSE]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -129,6 +130,9 @@ optional arguments:
   --method METHOD, -method METHOD
                         The name of the connectivity estimation method
                         (default=wPLI)
+  --verbose VERBOSE, -verbose VERBOSE
+                        Turn on interim processing: write to files (CSV)and
+                        save heatmap figures (PNG) (default=False)
 ```
 Specifying `condition` and `method` helps to locate the connectivity file (`.npy`).
 Averages channels into ROIs based on `./utils/settings.py` where

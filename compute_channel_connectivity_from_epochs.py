@@ -11,7 +11,6 @@ from mne.connectivity import spectral_connectivity
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-from utils.external.surface_laplacian import surface_laplacian
 from utils.settings import periods, frequency_bands, ROI
 import logging
 
@@ -171,9 +170,6 @@ def compute_channel_connectivity(epochs: Epochs,
     frequencies = frequency_bands[spectrum_mode].values()
     low_cutoff = tuple(band[0] for band in frequencies)
     high_cutoff = tuple(band[1] - spacing for band in frequencies)
-
-    if method in ['coh', 'ciplv', 'ppc']:
-        epochs = surface_laplacian(epochs=epochs)
 
     con, _, _, _, _ = spectral_connectivity(data=epochs,
                                             method=method,
